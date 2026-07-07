@@ -1,0 +1,51 @@
+services:
+  influxdb:
+    image: hlammons/lewis_influxdb:2
+    container_name: influxdb_container
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=put_secret_here
+      - DOCKER_INFLUXDB_INIT_PASSWORD=put_secret_here
+      - DOCKER_INFLUXDB_INIT_ORG=SMILab
+      - DOCKER_INFLUXDB_INIT_BUCKET=LEWIS
+      - DOCKER_INFLUXDB_INIT_RETENTION=1w
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=put_secret_here
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - ./data:/var/lib/influxdb2
+
+  mqtt-broker:
+    image: hlammons/lewis_mqtt:latest
+    container_name: mqtt_broker_container
+    ports:
+      - "1883:1883"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  webserver:
+    image: hlammons/lewis_webserver:latest
+    container_name: webserver_container
+    ports:
+      - "80:80"
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=my-auth-token
+      - INFLUXDB_ORG=SMILab
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s

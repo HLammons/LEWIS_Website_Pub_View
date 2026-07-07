@@ -1,0 +1,17 @@
+build-and-push:
+  image: python:3.9-slim
+  services:
+    - docker:dind
+  before_script:
+    - apt-get update && apt-get install -y docker.io
+    - docker info
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  script:
+    - cp LOCATION_KEYS.txt app/
+    - cd app
+    - COORDS=$(python -c "from process_queries import get_sensor_coordinates; import json; print(json.dumps(get_sensor_coordinates()))")
+    - rm LOCATION_KEYS.txt
+    - docker build --build-arg SENSOR_COORDINATES="$COORDS" -t hlammons/lewis_webserver:latest .
+    - docker push hlammons/lewis_webserver:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"

@@ -1,0 +1,224 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f8f9fa;
+}
+.wrapper {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+}
+.sidebar {
+    width: 200px;
+    background-color: #333333;
+    color: #ffffff;
+    flex-shrink: 0;
+    position: fixed;
+    height: 100vh;
+    overflow: hidden;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+}
+.sidebar img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 20px;
+}
+.sidebar .dropdown-menu {
+    width: 100%;
+    background-color: #eeeeee;
+    border: none;
+}
+.dropdown-item {
+    color: #333333;
+    text-align: left;
+}
+.dropdown-item:hover {
+    background-color: #ff0000;
+    color: #ffffff;
+}
+.btn {
+    width: 100%;
+    margin-bottom: 10px;
+}
+.btn-primary, .btn-danger {
+    background-color: #d32f2f;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+}
+.btn-primary:hover, .btn-danger:hover {
+    background-color: #b71c1c;
+}
+.btn-danger{
+    padding: 1rem 2rem;
+    font-weight:700;
+    transition-duration: 1s;
+    transition-property: border-top,
+       border-left,
+       border-bottom,
+       border-right,
+       box-shadow;
+}
+.btn-danger:hover{
+    border-top: 2px solid rgb(226, 43, 43);
+    border-left: 2px solid rgb(226, 43, 43);
+    border-bottom: 2px solid rgb(226, 43, 43);
+    border-right: 2px solid rgb(226, 43, 43);
+    box-shadow: rgba(255, 255, 255, 0.387) 5px 5px, rgba(255, 255, 255, 0.387) 10px 10px, rgba(255, 255, 255, 0.387) 15px 15px;
+}
+.container {
+    flex-grow: 1;
+    margin-left: 220px;
+    padding: 50px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    overflow: hidden;
+    width: calc(100% - 220px);
+}
+p {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin: 8px 0;
+}
+#a-chart {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 1;
+}
+body, input, button, select, textarea {
+    font-family: 'Nunito', sans-serif;
+    color: #333333;
+}
+#sensorChart {
+    max-width: 600px;
+    max-height: 400px;
+    margin: auto;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.duration-control {
+    flex: 0.75;
+    padding-right: 10px;
+}
+.filter-control {
+    flex: 0.25;
+    padding-left: 10px;
+}
+
+
+/* RANGE CONTROL STUFF */
+#range-controls {
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 5px;
+    position: relative;
+    margin-top: 50px;
+ }
+ 
+ #range-controls::before {
+    content: "Range Controls";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background-color: #333333;
+    padding: 0 5px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+ }
+ 
+ .sidebar p.white-text {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    color: #ffffff;
+    margin: 8px 0;
+    padding: 4px 0;
+ }
+ 
+ .slidecontainer {
+    width: 100%;
+ }
+ 
+ .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #ffffff;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    border-radius: 4px;
+ }
+ 
+ .slider:hover {
+    opacity: 1;
+ }
+ 
+ .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ff0000;
+    cursor: pointer;
+    border-radius: 50%;
+ }
+ 
+ .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #ff0000;
+    cursor: pointer;
+    border-radius: 50%;
+ }
+
+ .sensor-map-modal .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+    margin: 30px auto;
+  }
+  
+  .sensor-map-modal .modal-content {
+    max-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sensor-map-modal .modal-body {
+    flex: 1;
+    overflow-y: hidden;
+    max-height: calc(100vh - 200px);
+  }
+
+#table-control {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#table-control .dropdown,
+#table-control .btn {
+    flex: 1;
+}
+
+#table-control .dropdown-toggle,
+#table-control #downloadButton {
+    width: 100%;
+}

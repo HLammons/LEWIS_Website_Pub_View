@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message DataPoint {
+  string timestamp = 1;
+  double value = 2;
+}
+
+message TimeSeriesCollection {
+  repeated DataPoint data_points = 1;
+}
+
+message SensorData {
+  map<string, TimeSeriesCollection> fields = 1;
+}

@@ -1,0 +1,13 @@
+flask
+flask_socketio
+flask_compress
+flask_sqlalchemy
+flask_login
+werkzeug
+gevent==25.9.1
+pandas
+gunicorn==21.2.0
+folium
+protobuf==6.33.4
+scipy
+numpy

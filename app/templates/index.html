@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMILab Sensor Data</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/google-protobuf@3.21.2/google-protobuf.js"></script>
+    <script src="/static/javascript/misc/sensor_data.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <div id="sidebar" class="sidebar">
+            <img src="/static/images/SMILab_logo.png" alt="SMILab logo">
+            <img src="/static/images/unm_civil_logo.png" alt="UNM civil engineering logo">
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="lewis6dropdownButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                LEWIS 6
+            </button>
+            <div id="lewis-6-sidebar-buttons" class="dropdown-menu" aria-labelledby="lewis6dropdownButton" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="lewis7dropdownButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                LEWIS 7
+            </button>
+            <div id="lewis-7-sidebar-buttons" class="dropdown-menu" aria-labelledby="lewis7dropdownButton" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+            <div id="range-controls">
+                <div class="slidecontainer">
+                    <p class="white-text">Upper Bound: <span id="upperBoundVal"></span></p>                    
+                    <input type="range" min="0" max="600" value="600" class="slider" id="upperBound">
+                    <p class="white-text">Lower Bound: <span id="lowerBoundVal"></span></p>
+                    <input type="range" min="0" max="600" value="0" class="slider" id="lowerBound">
+                </div>
+            </div>
+        </div>       
+        <div class="container">
+            <div class="controls">
+                <div class="duration-control">
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="durationMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Duration Selection
+                        </button>
+                        <div id="duration-buttons" class="dropdown-menu" aria-labelledby="durationMenuButton" style="max-height: 400px; overflow-y: auto;">
+                            <button class="dropdown-item">Last 12 Minutes</button>
+                            <button class="dropdown-item">Last Hour</button>
+                            <button class="dropdown-item">Last Day</button>
+                            <button class="dropdown-item">Last Week</button>
+                            <button class="dropdown-item">Last Month</button>
+                            <button class="dropdown-item">Lifetime</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-control">
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="filterMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Filters
+                        </button>
+                        <div id="filter-buttons" class="dropdown-menu" aria-labelledby="filterMenuButton" style="max-height: 400px; overflow-y: auto;">
+                            <button class="dropdown-item">LTTB</button>
+                            <button class="dropdown-item">Aggregate</button>
+                            <button class="dropdown-item">Sliding Average</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="sensor-content">
+                <h1 id="chartTitle" style="white-space: pre-wrap;">Latest Sonar Readings</h1>
+                <canvas id="a-chart" class="a-graph"></canvas>
+                <div id="spacer" style="height: 80px;"></div>
+                <div id="table-control">
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="tableFilterMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Filter
+                        </button>
+                        <div id="table-filter-buttons" class="dropdown-menu" aria-labelledby="tableFilterMenuButton" style="max-height: 400px; overflow-y: auto;">
+                            <button class="dropdown-item">Default</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" type="button" id="downloadButton">
+                        Download
+                    </button>
+                </div>
+                <div id="tableTitle" class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table id="sensorDataTable" class="table table-hover table-dark">
+                        <thead style="position: sticky;">
+                            <tr>
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Measurement</th>
+                                <th scope="col">Charge</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { EventBus } from '/static/javascript/core/event_bus.js';
+        import { AppStateManager } from '/static/javascript/core/app_state_manager.js'
+        import { Container_Manager } from '/static/javascript/ui_classes/container_manager.js';
+        import { Sidebar_Manager } from "/static/javascript/ui_classes/sidebar_manager.js";
+        import { DataDirector } from "/static/javascript/core/data_director.js";
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const eventBus = new EventBus();
+            const appStateManager = new AppStateManager();
+            const containerManager = new Container_Manager();
+            const sidebarManager = new Sidebar_Manager('sidebar');
+            const dataDirector = new DataDirector();
+
+            containerManager.displayWelcomeMessage();
+        });
+    </script>
+</body>
+</html>

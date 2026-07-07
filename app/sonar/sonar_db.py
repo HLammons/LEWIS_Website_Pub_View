@@ -1,0 +1,96 @@
+import urllib.request
+import time
+import network_secrets
+import os
+import gzip
+import requests
+from flask import jsonify
+
+class SonarDB:
+    def __init__(self, url, org, bucket, retries=5, delay=5):
+        self.url = url
+        self.org = org
+        self.bucket = bucket
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Authorization': f'Token {os.getenv("INFLUXDB_TOKEN")}',
+            'Content-Type': 'text/plain; charset=utf-8'
+        })
+        self._verify_connection(retries, delay)
+
+    def _verify_connection(self, retries, delay):
+        for attempt in range(retries):
+            try:
+                response = self.session.get(f"{self.url}/health")
+                response.raise_for_status()
+                return
+            except Exception as e:
+                print(f"Attempt {attempt + 1}/{retries} to connect to InfluxDB failed: {e}")
+                if attempt < retries - 1:
+                    print(f"Retrying in {delay} seconds...")
+                    time.sleep(delay)
+                else:
+                    raise e
+                
+    def post_sonar_data(self, lines):
+        response = self.session.post(
+            f"{self.url}/api/v2/write?org={self.org}&bucket={self.bucket}&precision=ms",
+            data='\n'.join(lines).encode('utf-8')
+        )
+        response.raise_for_status()
+
+    def get_query(self, start_date, end_date, sensor_id, measurement_name, field_name, lower_bound, upper_bound, filter_type=None):
+        assert filter_type is not None
+
+        query = f'''
+                import "influxdata/influxdb/schema"
+                from(bucket: "{network_secrets.DB_BUCKET}")
+                |> range(start: {start_date}, stop: {end_date})
+                |> filter(fn: (r) => r._measurement == "{measurement_name}")
+                |> filter(fn: (r) => r["sensor_id"] == "{sensor_id}")
+                |> schema.fieldsAsCols()
+                |> filter(fn: (r) => r["{field_name}"] >= {lower_bound} and r["{field_name}"] <= {upper_bound})
+        '''
+
+        result = self.run_query(query)
+        return result
+
+    
+    def names_query(self, regex_pattern):
+        query = f'''
+            import "influxdata/influxdb/schema"
+            
+            schema.tagValues(bucket: "{network_secrets.DB_BUCKET}", tag: "sensor_id")
+            |> filter(fn: (r) => r._value =~ /{regex_pattern}/)
+            '''
+        
+        return self.run_query(query)
+
+    def run_query(self, query):
+        url = "http://influxdb:8086/api/v2/query?org=SMILab"
+        auth_token = os.environ.get('INFLUXDB_TOKEN')
+        headers = {
+            'Authorization': f'Token {auth_token}',
+            'Accept': 'application/csv',
+            'Content-type': 'application/vnd.flux',
+            'Accept-Encoding': 'gzip'
+        }
+        data = query.encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers=headers, method='POST')
+
+        result = None
+        try:
+            with urllib.request.urlopen(req) as response:
+                data = response.read()
+                if data[:2] == b'\x1f\x8b':
+                    result = gzip.decompress(data).decode('utf-8')
+                else:
+                    result = data.decode('utf-8')
+            return result
+        
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            print(f"HTTP Error during fetch: {e.code}, body: {error_body}")
+            raise e
+
+sonar_db = SonarDB(network_secrets.DB_URL, network_secrets.ORG, network_secrets.DB_BUCKET)

@@ -1,0 +1,89 @@
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb_container
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=put_secret_here
+      - DOCKER_INFLUXDB_INIT_PASSWORD=put_secret_here
+      - DOCKER_INFLUXDB_INIT_ORG=SMILab
+      - DOCKER_INFLUXDB_INIT_BUCKET=LEWIS
+      - DOCKER_INFLUXDB_INIT_RETENTION=0
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=put_secret_here
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/health || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  
+  filter-service-1:
+    image: hlammons/lewis_filterservice
+    container_name: filter_container_1
+    user: root
+    ports:
+      - "9911:9910"
+    volumes:
+      - unfiltered:/filter_staging/unfiltered
+      - filtered:/filter_staging/filtered
+
+  filter-service-2:
+    image: hlammons/lewis_filterservice
+    container_name: filter_container_2
+    user: root
+    ports:
+      - "9912:9910"
+    volumes:
+      - unfiltered:/filter_staging/unfiltered
+      - filtered:/filter_staging/filtered
+
+  filter-service-3:
+    image: hlammons/lewis_filterservice
+    container_name: filter_container_3
+    user: root
+    ports:
+      - "9913:9910"
+    volumes:
+      - unfiltered:/filter_staging/unfiltered
+      - filtered:/filter_staging/filtered
+
+  webserver:
+    build: ./app
+    container_name: webserver_container
+    ports:
+      - "80:80"
+    volumes:
+      - unfiltered:/filter_staging/unfiltered
+      - filtered:/filter_staging/filtered
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=my-super-secret-auth-token
+      - INFLUXDB_ORG=SMILab
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      filter-service-1:
+        condition: service_started
+      filter-service-2:
+        condition: service_started
+      filter-service-3:
+        condition: service_started
+
+  monitor:
+    image: hlammons/lewis_monitor
+    container_name: monitor_container
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOCATION_KEYS=30773:6a185ef7c2af4b8958af7bb42d6d4603d4e2e27f,37388:aa305a70ba77a2796bcb8d4ed10f9e7b0b398286,37445:e32338b27da2e4d74ce6d764ce6e0d10deb852db,37795:7dd1ccf7fa0b0052efa90cc83226456a52fc2e86,37597:37879767ebd844560e956519fbb0f8ecea5880d9,37778:f0190d6103935a6392eed7d54087120766b12379,41411:528f93854bdb6f349536823443556c1f07b0a54e,42718:c4d8357df6d3468d442864cd8d88c24d36d420d8
+    volumes:
+      - ./sensor_history:/monitor/data
+    depends_on:
+      webserver:
+        condition: service_started
+        
+volumes:
+  unfiltered:
+  filtered:
+
